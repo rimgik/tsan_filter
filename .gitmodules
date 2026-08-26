@@ -1,0 +1,4 @@
+[submodule "llvm-project"]
+	path = llvm-project
+	url = https://github.com/rimgik/llvm-project.git
+	branch = feat/one-word-note
