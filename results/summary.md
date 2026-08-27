@@ -51,16 +51,29 @@ improvement over stock TSan.
 
 ## Shadow-resident follow-up
 
-A later Linux prototype inlines an exact comparison against slot 0 of TSan's
-existing shadow cell. It keeps stock shadow history and adds no mapping.
+A later prototype inlines exact comparisons against TSan's existing shadow
+cell. It keeps stock history and adds no mapping, allocator metadata, or
+private/shared state.
 
-| Workload | Stock | Shadow-resident | Change |
+The first version checked only slot 0. Thirty paired Linux runs made the
+private hot-cell loop 70.61% faster than stock, but an ordered thread-handoff
+case was 16.23% slower because its repeated exact word lived in slot 1.
+
+The staged version checks slot 0 first and probes slots 1–3 only after a miss:
+
+| Linux workload | Stock | Slot 0 | Staged |
 | --- | ---: | ---: | ---: |
-| Private hot-cell writes, 300M operations | 0.584 s | 0.170 s | 70.8% faster |
-| SQLite speedtest1, size 25 | 5.78 s | 5.77 s | 0.2% faster |
-| Redis SET/GET/INCR mean | 89,072 req/s | 90,135 req/s | 1.2% faster |
+| Ordered handoff | 0.584 s | 0.678 s | 0.281 s |
+| SQLite speedtest1 | 5.609 s | 5.713 s | 5.599 s |
+| Redis mean throughput | 92,377 req/s | 90,668 req/s | 91,843 req/s |
 
-The application differences are within VM noise. The useful result is that the
-large side-note regressions disappeared while the favorable repeated-access
-case improved further. See `shadow_resident_2026-08-27.md` for the design,
-correctness scope, and Linux protocol.
+The staged handoff result is 52.15% faster than stock. SQLite and Redis
+confidence intervals include zero, so they establish neither a general
+speedup nor a regression. Peak RSS is unchanged within measurement variation,
+as expected from reusing normal shadow memory.
+
+Thirty paired macOS flag-off/flag-on runs also found large synthetic gains:
+83.05% on the private loop and 74.45% on ordered handoff. Native Linux PMU
+measurements are still needed for instruction, branch, and cache attribution.
+See `shadow_resident_2026-08-27.md` for the design, confidence intervals,
+correctness checks, and exact revisions.

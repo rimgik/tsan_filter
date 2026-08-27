@@ -138,6 +138,26 @@ mapping.
 Recompile the benchmark after every compiler-rt rebuild because the static
 TSan runtime is linked into the executable.
 
+The ordered-handoff benchmark distinguishes a slot-0-only check from the
+staged four-slot check:
+
+```sh
+./tool/linux_tsan.sh compile-stock \
+  "$HOME/build/tsan-stock" \
+  mvp/benchmarks/bench_handoff_write.cpp \
+  "$HOME/build/bench-handoff-stock" -pthread
+
+./tool/linux_tsan.sh compile-shadow-resident \
+  "$HOME/build/tsan-shadow-resident" \
+  mvp/benchmarks/bench_handoff_write.cpp \
+  "$HOME/build/bench-handoff-shadow-resident" -pthread
+```
+
+The main thread writes the cell before `pthread_create`; the created worker
+then writes it repeatedly. Creation provides a happens-before edge, so the
+benchmark contains no race. The worker's word normally occupies slot 1, making
+this a focused test of the slot-0 miss path.
+
 ## 5. Correctness before timing
 
 Run the upstream TSan suite:

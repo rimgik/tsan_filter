@@ -65,29 +65,61 @@ The three empty-slot loads are not required. Stock `ContainsSameAccess` returns
 as soon as any slot exactly matches the current access, regardless of the other
 slots. Requiring emptiness only makes the inline subset more conservative.
 
-## Existing shadow, exact slot-0 hit — kept
+## Existing shadow, exact slot-0 hit — superseded
 
 The refined check performs one relaxed 32-bit load from normal shadow slot 0.
 An exact write match, or stock's read-adjusted exact match, skips the callback;
 every mismatch uses unmodified TSan. It allocates no extra memory and does not
 implement a separate private/shared state machine.
 
-In one interleaved seven-run private-loop series, median time was 0.584 seconds
-for stock, 0.256 seconds for the four-load form, and 0.170 seconds for the
-one-load form. The one-load check was about 71% faster than stock in this
-deliberately favorable case.
+Thirty paired private-loop runs measured 0.5488 seconds stock and 0.1613
+seconds candidate on average, a 70.61% reduction with an approximate 95%
+interval of ±0.34 percentage points.
 
-Five-run application medians were approximately neutral:
+The weakness appears when the repeated current word is not in slot 0. In the
+ordered handoff benchmark, the main thread initializes the cell and a worker
+created afterward writes it repeatedly. TSan places the worker's word in slot
+1. Across 20 rotated runs, stock averaged 0.5835 seconds and the slot-0 filter
+averaged 0.6783 seconds. The filter was 16.23% slower, with a 95% interval of
+[15.20%, 17.26%], because every iteration performed the inline miss and then
+called TSan to find the exact hit in slot 1.
 
-| Workload | Stock | Exact slot 0 | Difference |
-| --- | ---: | ---: | ---: |
-| SQLite speedtest1 | 5.78 s | 5.77 s | 0.2% faster |
-| Redis mean throughput | 89,072 req/s | 90,135 req/s | 1.2% faster |
+## Existing shadow, staged four-slot hit — kept
 
-SQLite median peak RSS was 112,908 KiB stock and 112,684 KiB candidate. Redis
-was 41,688 KiB and 41,784 KiB respectively. These small differences are within
-VM variability. Focused pass and transition tests, static and shared runtime
-linking, and the full TSan suite passed with no unexpected failures.
+The staged version keeps the slot-0 load and branch as the common path. Only a
+slot-0 miss loads slots 1–3. A hit in any slot skips the callback; an all-slot
+miss falls back unchanged. The implementation performs exact comparisons only:
+there is no merge, shadow write, ownership state, or second mapping.
+
+On AArch64, the rest block compiles to three 32-bit loads followed by a compact
+`cmp`/`ccmp` chain. The common slot-0 hit does not execute those loads.
+
+Repeated Linux measurements:
+
+| Workload | Stock | Slot 0 | Staged | Interpretation |
+| --- | ---: | ---: | ---: | --- |
+| Ordered handoff, 20 runs | 0.5835 s | 0.6783 s | 0.2810 s | staged 52.15% faster than stock |
+| SQLite, 15 runs | 5.609 s | 5.713 s | 5.599 s | all differences include zero |
+| Redis, 15 runs | 92,377 req/s | 90,668 req/s | 91,843 req/s | all differences include zero |
+
+The staged handoff result is 58.83% lower than slot 0, with a 95% interval of
+[56.95%, 60.62%]. On the private slot-0 case, 30 paired runs put staged 2.29%
+behind the one-slot version, but the interval was ±2.38 percentage points, so
+no difference was established.
+
+Peak RSS remained effectively unchanged. SQLite measured 112,908 KiB stock,
+112,688 KiB slot 0, and 112,704 KiB staged. Redis was approximately 41,804,
+41,828, and 41,916 KiB respectively.
+
+The same pass was also tested on macOS using one compiler with the feature flag
+off and on. Thirty paired runs found the staged version 83.05% faster on the
+private loop and 74.45% faster on the ordered handoff loop. Five-run peak RSS
+means differed by only 13 KiB on the private test and were identical on the
+handoff test.
+
+Linux and Darwin instrumentation tests, focused race tests, and the full Linux
+TSan suite passed. See `shadow_resident_2026-08-27.md` for confidence
+intervals, protocol details, and exact revisions.
 
 ## Hardware counters in the local VM — unavailable
 
