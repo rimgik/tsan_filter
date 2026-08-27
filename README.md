@@ -18,6 +18,10 @@ real-world and proxy workloads are slower and use more resident memory.
 - `report/` — design, soundness, implementation, and evaluation notes.
 - `mvp/` — build instructions and compact benchmark sources.
 - `results/summary.md` — headline performance and memory measurements.
+- `results/linux_vm_2026-08-27.md` — Linux/AArch64 validation results.
+- `results/experiment_log.md` — retained and rejected optimization trials.
+- `docs/linux_build_and_benchmark.md` — reproducible Linux build workflow.
+- `tool/linux_tsan.sh` — build, compile, check, run, and measure commands.
 - `docs/` — project brief and proposal.
 - `article/README.md` — related papers and links.
 
@@ -35,4 +39,6 @@ The feature is disabled by default. Enable compiler instrumentation with
 `TSAN_OPTIONS=one_word_filter=1`.
 
 Start with [the MVP guide](mvp/README.md) for the design and build commands,
-then read [the results summary](results/summary.md) for the current limits.
+or use [the Linux workflow](docs/linux_build_and_benchmark.md) for a current
+end-to-end build. Read [the results summary](results/summary.md) and the
+[Linux VM evaluation](results/linux_vm_2026-08-27.md) for the current limits.
