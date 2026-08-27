@@ -207,6 +207,25 @@ stock-versus-stock A/A calibration first. For servers, measure client
 throughput and pin the server and client to disjoint CPUs where possible.
 Diagnostic counters must be disabled during headline timing runs.
 
+The repeat runner rotates execution order, pins each process, records peak RSS,
+writes every sample to CSV, and reports paired geometric changes:
+
+```sh
+./tool/repeat_benchmark.py \
+  --variant stock="$HOME/build/bench-private-stock" \
+  --variant staged="$HOME/build/bench-private-shadow-resident" \
+  --runs 30 \
+  --warmups 1 \
+  --cpu 2 \
+  --csv results/native-private.csv \
+  -- 300000000
+```
+
+The first variant is the baseline. The default metric is the benchmark's
+`seconds=...` field, so a negative paired change means the candidate took less
+time. Use `--metric-regex` for another numeric field and `--no-rss` on
+systems without GNU `/usr/bin/time`.
+
 `perf stat` is appropriate on native Linux:
 
 ```sh
