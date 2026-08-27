@@ -47,3 +47,52 @@ The separate note is a second address stream. A note miss followed by fallback
 can fetch both a note line and an ordinary-shadow line. This motivates the next
 experiment: recognize repeated exact accesses directly in the existing shadow
 cell, without a second mapping.
+
+## Existing shadow, slot 0 plus three empty slots — superseded
+
+The first shadow-resident prototype loaded all four 32-bit words in the normal
+TSan shadow cell. It skipped the runtime callback only when slot 0 exactly
+matched the current access and slots 1–3 were empty. Relaxed atomic loads became
+four ordinary AArch64 `ldr` instructions in the same 16-byte cell.
+
+Seven warmed, CPU-pinned private-loop runs had medians of 0.551 seconds for
+stock TSan and 0.243 seconds for this check, about a 56% reduction. SQLite was
+5.81 seconds versus 5.86 seconds stock. Redis was 90,827 versus 89,824 requests
+per second stock. The application differences are too small for a performance
+claim, but unlike the separate-note filter there was no large regression.
+
+The three empty-slot loads are not required. Stock `ContainsSameAccess` returns
+as soon as any slot exactly matches the current access, regardless of the other
+slots. Requiring emptiness only makes the inline subset more conservative.
+
+## Existing shadow, exact slot-0 hit — kept
+
+The refined check performs one relaxed 32-bit load from normal shadow slot 0.
+An exact write match, or stock's read-adjusted exact match, skips the callback;
+every mismatch uses unmodified TSan. It allocates no extra memory and does not
+implement a separate private/shared state machine.
+
+In one interleaved seven-run private-loop series, median time was 0.584 seconds
+for stock, 0.256 seconds for the four-load form, and 0.170 seconds for the
+one-load form. The one-load check was about 71% faster than stock in this
+deliberately favorable case.
+
+Five-run application medians were approximately neutral:
+
+| Workload | Stock | Exact slot 0 | Difference |
+| --- | ---: | ---: | ---: |
+| SQLite speedtest1 | 5.78 s | 5.77 s | 0.2% faster |
+| Redis mean throughput | 89,072 req/s | 90,135 req/s | 1.2% faster |
+
+SQLite median peak RSS was 112,908 KiB stock and 112,684 KiB candidate. Redis
+was 41,688 KiB and 41,784 KiB respectively. These small differences are within
+VM variability. Focused pass and transition tests, static and shared runtime
+linking, and the full TSan suite passed with no unexpected failures.
+
+## Hardware counters in the local VM — unavailable
+
+`perf` is installed and software timing events work, but the Apple
+Virtualization Framework guest exposes no PMU events. Even after temporarily
+allowing perf access, cycles, instructions, branches, and cache events report
+`not supported`. Final IPC and cache-miss measurements therefore require
+native Linux or a VM/hypervisor with PMU passthrough.

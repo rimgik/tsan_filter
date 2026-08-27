@@ -9,10 +9,14 @@ Usage:
   linux_tsan.sh check BUILD_DIR
   linux_tsan.sh compile-stock BUILD_DIR SOURCE OUTPUT [EXTRA_FLAGS...]
   linux_tsan.sh compile-filter BUILD_DIR SOURCE OUTPUT [EXTRA_FLAGS...]
+  linux_tsan.sh compile-shadow-resident BUILD_DIR SOURCE OUTPUT [EXTRA_FLAGS...]
   linux_tsan.sh run-stock BINARY [ARGS...]
   linux_tsan.sh run-filter BINARY [ARGS...]
+  linux_tsan.sh run-shadow-resident BINARY [ARGS...]
   linux_tsan.sh measure-stock BINARY [ARGS...]
   linux_tsan.sh measure-filter BINARY [ARGS...]
+  linux_tsan.sh measure-shadow-resident BINARY [ARGS...]
+  linux_tsan.sh perf-stat BINARY [ARGS...]
   linux_tsan.sh info BUILD_DIR
 
 Environment:
@@ -21,6 +25,8 @@ Environment:
   BOOTSTRAP_CC            C compiler used to build LLVM (default: clang)
   BOOTSTRAP_CXX           C++ compiler used to build LLVM (default: clang++)
   TSAN_OPTIONS            Additional runtime options to preserve
+  PERF_REPETITIONS        perf stat repetitions (default: 7)
+  PERF_EVENTS             comma-separated perf events
 EOF
 }
 
@@ -105,9 +111,10 @@ compile() {
   local compiler
   compiler=$(source_compiler "$build_dir" "$source_file")
   local -a flags=(-O1 -gline-tables-only -fsanitize=thread)
-  if [[ $variant == filter ]]; then
-    flags+=(-mllvm -tsan-one-word-filter)
-  fi
+  case "$variant" in
+    filter) flags+=(-mllvm -tsan-one-word-filter) ;;
+    shadow-resident) flags+=(-mllvm -tsan-shadow-resident-filter) ;;
+  esac
 
   "$compiler" "${flags[@]}" "$source_file" -o "$output" "$@"
 }
@@ -143,6 +150,15 @@ measure() {
   fi
 }
 
+perf_stat() {
+  local repetitions=${PERF_REPETITIONS:-7}
+  local default_events=cycles,instructions,branches,branch-misses
+  default_events+=,cache-references,cache-misses
+  default_events+=,L1-dcache-loads,L1-dcache-load-misses
+  local events=${PERF_EVENTS:-$default_events}
+  perf stat -r "$repetitions" -e "$events" "$@"
+}
+
 command_name=${1:-}
 if [[ -z $command_name ]]; then
   usage >&2
@@ -163,12 +179,12 @@ case "$command_name" in
     need_args 1 "$#"
     check "$1"
     ;;
-  compile-stock | compile-filter)
+  compile-stock | compile-filter | compile-shadow-resident)
     need_args 3 "$#"
     variant=${command_name#compile-}
     compile "$variant" "$@"
     ;;
-  run-stock)
+  run-stock | run-shadow-resident)
     need_args 1 "$#"
     "$@"
     ;;
@@ -176,10 +192,14 @@ case "$command_name" in
     need_args 1 "$#"
     run_filter "$@"
     ;;
-  measure-stock | measure-filter)
+  measure-stock | measure-filter | measure-shadow-resident)
     need_args 1 "$#"
     variant=${command_name#measure-}
     measure "$variant" "$@"
+    ;;
+  perf-stat)
+    need_args 1 "$#"
+    perf_stat "$@"
     ;;
   info)
     need_args 1 "$#"

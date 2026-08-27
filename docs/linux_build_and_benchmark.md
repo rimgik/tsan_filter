@@ -1,7 +1,7 @@
-# Building and testing the TSan filter on Linux
+# Building and testing the TSan filters on Linux
 
 This workflow builds LLVM/Clang and compiler-rt, compiles the same benchmark
-with pristine TSan and the one-word filter, and measures time and peak RSS.
+with pristine TSan and either filter, and measures time and peak RSS.
 The commands work on native Linux and inside the local Lima VM.
 
 ## 1. Prepare Linux
@@ -92,6 +92,15 @@ Filter candidate:
   "$HOME/build/bench-private-filter"
 ```
 
+Shadow-resident candidate:
+
+```sh
+./tool/linux_tsan.sh compile-shadow-resident \
+  "$HOME/build/tsan-shadow-resident" \
+  mvp/benchmarks/bench_private_write.cpp \
+  "$HOME/build/bench-private-shadow-resident"
+```
+
 The equivalent manual commands are:
 
 ```sh
@@ -105,6 +114,12 @@ The equivalent manual commands are:
   -mllvm -tsan-one-word-filter \
   mvp/benchmarks/bench_private_write.cpp \
   -o "$HOME/build/bench-private-filter"
+
+"$HOME/build/tsan-shadow-resident/bin/clang++" \
+  -O1 -gline-tables-only -fsanitize=thread \
+  -mllvm -tsan-shadow-resident-filter \
+  mvp/benchmarks/bench_private_write.cpp \
+  -o "$HOME/build/bench-private-shadow-resident"
 ```
 
 The compile-time flag changes the instrumentation pass. The runtime flag turns
@@ -113,7 +128,12 @@ on the extra mapping and allocator tagging:
 ```sh
 ./tool/linux_tsan.sh run-stock "$HOME/build/bench-private-stock" 300000000
 ./tool/linux_tsan.sh run-filter "$HOME/build/bench-private-filter" 300000000
+./tool/linux_tsan.sh run-shadow-resident \
+  "$HOME/build/bench-private-shadow-resident" 300000000
 ```
+
+The shadow-resident candidate needs no runtime option and allocates no extra
+mapping.
 
 Recompile the benchmark after every compiler-rt rebuild because the static
 TSan runtime is linked into the executable.
@@ -158,6 +178,8 @@ context switches:
 ```sh
 ./tool/linux_tsan.sh measure-stock "$HOME/build/bench-private-stock" 300000000
 ./tool/linux_tsan.sh measure-filter "$HOME/build/bench-private-filter" 300000000
+./tool/linux_tsan.sh measure-shadow-resident \
+  "$HOME/build/bench-private-shadow-resident" 300000000
 ```
 
 Use one warmup followed by at least seven interleaved repetitions. Run a
@@ -168,10 +190,12 @@ Diagnostic counters must be disabled during headline timing runs.
 `perf stat` is appropriate on native Linux:
 
 ```sh
-perf stat -r 7 -e cycles,instructions,cache-references,cache-misses,\
-page-faults,context-switches \
+./tool/linux_tsan.sh perf-stat \
   "$HOME/build/bench-private-stock" 300000000
 ```
+
+Override `PERF_EVENTS` or `PERF_REPETITIONS` when needed. Keep counter runs
+separate from headline timing runs.
 
 The local Apple-virtualized Lima VM does not expose those PMU events, so it is
 useful for Linux builds, correctness, timing, RSS, `/proc`, and page-fault

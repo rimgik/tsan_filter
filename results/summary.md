@@ -1,10 +1,10 @@
 # Evaluation Summary
 
-The current v1 is an exact, sound one-word filter. It is disabled by default in
+The side-note v1 is an exact, sound one-word filter. It is disabled by default in
 both the compiler and runtime. Measurements compare separately built stock and
 filtered TSan binaries, with diagnostic counters disabled.
 
-## Headline results
+## Side-note v1 results
 
 | Workload | Stock | Filter | Change |
 | --- | ---: | ---: | ---: |
@@ -48,3 +48,19 @@ lookup, and branch costs, while many cells eventually require normal TSan
 tracking. Therefore v1 is useful as a concrete lower-bound experiment and a
 sound implementation baseline, but it is not currently a general performance
 improvement over stock TSan.
+
+## Shadow-resident follow-up
+
+A later Linux prototype inlines an exact comparison against slot 0 of TSan's
+existing shadow cell. It keeps stock shadow history and adds no mapping.
+
+| Workload | Stock | Shadow-resident | Change |
+| --- | ---: | ---: | ---: |
+| Private hot-cell writes, 300M operations | 0.584 s | 0.170 s | 70.8% faster |
+| SQLite speedtest1, size 25 | 5.78 s | 5.77 s | 0.2% faster |
+| Redis SET/GET/INCR mean | 89,072 req/s | 90,135 req/s | 1.2% faster |
+
+The application differences are within VM noise. The useful result is that the
+large side-note regressions disappeared while the favorable repeated-access
+case improved further. See `shadow_resident_2026-08-27.md` for the design,
+correctness scope, and Linux protocol.
