@@ -1,6 +1,6 @@
 # TSan v3 access tracking
 
-[Documentation index](../README.md)
+[Documentation](../README.md)
 
 Clang inserts calls such as `__tsan_read4` and `__tsan_write8` around ordinary
 memory accesses. The runtime receives the current thread, program counter,

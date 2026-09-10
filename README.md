@@ -16,8 +16,8 @@ but 31% lower-throughput on Redis and 72% slower on SQLite. The
 shadow-resident filter reduced BT Class W CPU time by about 30% with unchanged
 peak RSS. IS and CG were indistinguishable from stock in the Linux VM.
 
-Start with the [documentation index](docs/README.md). It links the Linux build,
-usage, correctness, implementation, profiler, benchmark, and reference guides.
+Start with the [documentation](docs/README.md) for build, usage, correctness,
+implementation, profiling, benchmark, and reference guides.
 
 The LLVM fork is included as a submodule. Downloaded benchmarks, build trees,
 raw traces, and private working notes are intentionally excluded.

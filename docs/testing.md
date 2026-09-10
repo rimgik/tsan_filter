@@ -1,6 +1,6 @@
 # Correctness testing
 
-[Documentation index](README.md) · [Linux build](build-linux.md)
+[Documentation](README.md) · [Linux build](build-linux.md)
 
 Run correctness checks before timing a feature.
 

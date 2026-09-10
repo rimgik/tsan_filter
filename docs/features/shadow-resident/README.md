@@ -1,6 +1,6 @@
 # Shadow-resident filter
 
-[Documentation index](../../README.md) · [Implementation](implementation.md)
+[Documentation](../../README.md) · [Implementation](implementation.md)
 
 The shadow-resident filter reuses TSan's existing four-word shadow cell. It
 constructs the current access word inline and skips the runtime callback only
@@ -60,5 +60,6 @@ Run both full suites and the focused slot/handoff tests described in
 Redis, SQLite, IS, and CG currently establish neither a general speedup nor a
 regression. BT is the main application-sized positive result.
 
-Next: [implementation details](implementation.md) or the
-[BT profiler explanation](../../benchmarks/current-results.md#why-bt-performs-well).
+Full measurements are in [benchmark results](../../benchmarks/results.md).
+See also [implementation details](implementation.md) and the
+[BT profiler analysis](../../profiler/results.md#why-bt-favours-shadow-resident-filtering).

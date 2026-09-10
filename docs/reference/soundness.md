@@ -1,6 +1,6 @@
 # Soundness requirement
 
-[Documentation index](../README.md) · [TSan tracking](tsan-v3.md)
+[Documentation](../README.md) · [TSan tracking](tsan-v3.md)
 
 Memory that has been used by only one thread so far may later be accessed by a
 different thread. At that transition, TSan still needs the earlier thread ID,

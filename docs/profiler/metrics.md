@@ -1,6 +1,6 @@
 # Profiler metrics
 
-[Profiler guide](README.md)
+[Documentation](../README.md) · [Profiler guide](README.md) · [Results and analysis](results.md)
 
 The denominator for access percentages is the number of observed eight-byte
 cell touches. One callback can touch more than one cell.

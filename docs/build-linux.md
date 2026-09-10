@@ -1,6 +1,6 @@
 # Build LLVM and TSan on Linux
 
-[Documentation index](README.md)
+[Documentation](README.md)
 
 ## Requirements
 
@@ -67,4 +67,4 @@ export OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE OMP_PROC_BIND=close OMP_PLACES=cores
 
 Archer tells TSan about OpenMP synchronization. It does not replace TSan.
 
-Next: [correctness testing](testing.md).
+Related: [correctness testing](testing.md) and [running benchmarks](benchmarks/README.md).

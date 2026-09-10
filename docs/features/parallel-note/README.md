@@ -1,6 +1,6 @@
 # Parallel-note filter
 
-[Documentation index](../../README.md) · [Implementation](implementation.md)
+[Documentation](../../README.md) · [Implementation](implementation.md)
 
 The parallel-note filter stores one exact TSan shadow word for each eight bytes
 of supported application memory. It handles an access only while all history
@@ -66,5 +66,6 @@ See [correctness testing](../../testing.md) for focused requirements.
 The private loop is a deliberate best case. Tested applications pay for the
 extra mapping and lookup too often for the saved callbacks to recover the cost.
 
-Next: [implementation details](implementation.md) or
-[benchmark methodology](../../benchmarks/README.md).
+Full measurements are in [benchmark results](../../benchmarks/results.md).
+See also [implementation details](implementation.md) and
+[benchmark instructions](../../benchmarks/README.md).

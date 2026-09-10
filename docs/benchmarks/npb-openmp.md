@@ -1,6 +1,6 @@
 # NPB OpenMP
 
-[Benchmark index](README.md)
+[Benchmarks](README.md) · [Results](results.md)
 
 The harness uses GMAP NPB-CPP revision
 `5bc1e2c4aca09f4ebae370b80f8f335a76e162ef`. BT is a structured

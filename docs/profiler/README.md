@@ -1,6 +1,6 @@
 # Workload profiler
 
-[Documentation index](../README.md) · [Metric definitions](metrics.md)
+[Documentation](../README.md) · [Metric definitions](metrics.md) · [Results and analysis](results.md)
 
 The profiler measures which optimizations a workload could use. It does not
 filter accesses: after recording its counters, it always continues through
@@ -53,5 +53,5 @@ For hardware counters, also with ownership profiling disabled:
   -- "$HOME/build/example-tsan"
 ```
 
-Next: [metric definitions](metrics.md) and
-[benchmark methodology](../benchmarks/README.md).
+Related: [profiler results and analysis](results.md) and
+[benchmark instructions](../benchmarks/README.md).

@@ -2,17 +2,30 @@
 
 [Back to project README](../README.md)
 
-## Start here
+## Table of contents
 
-1. [Build LLVM and TSan on Linux](build-linux.md).
-2. Choose a feature:
-   - [Parallel-note filter](features/parallel-note/README.md)
-   - [Shadow-resident filter](features/shadow-resident/README.md)
-   - [Workload profiler](profiler/README.md)
-3. [Run the correctness tests](testing.md).
-4. [Run and interpret benchmarks](benchmarks/README.md).
+### Getting started
 
-## Reference
+- [Build LLVM and TSan on Linux](build-linux.md)
+- [Test correctness](testing.md)
+
+### Designs
+
+- [Parallel-note filter](features/parallel-note/README.md)
+  - [Implementation details](features/parallel-note/implementation.md)
+- [Shadow-resident filter](features/shadow-resident/README.md)
+  - [Implementation details](features/shadow-resident/implementation.md)
+
+### Evaluation
+
+- [Run the benchmarks](benchmarks/README.md)
+- [Benchmark results](benchmarks/results.md)
+- [Use the workload profiler](profiler/README.md)
+  - [Metric definitions](profiler/metrics.md)
+  - [Profiler results and analysis](profiler/results.md)
+- [NPB OpenMP setup](benchmarks/npb-openmp.md)
+
+### Background
 
 - [How TSan v3 tracks an access](reference/tsan-v3.md)
 - [Why sound filtering must retain history](reference/soundness.md)
