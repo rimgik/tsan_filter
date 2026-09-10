@@ -30,56 +30,40 @@ Redis, SQLite, IS-B, and CG-A were statistically indistinguishable from stock
 in the retained runs. BT-W is the main application-sized positive result.
 The [profiler analysis](../profiler/results.md) explains why.
 
-## NPB OpenMP: Class W
+## NPB OpenMP
 
-One warmup and seven balanced repetitions were used with four OpenMP workers.
-All runs passed NPB verification. NPB time is the benchmark's elapsed time;
-total CPU is user plus system time.
+Each completed comparison used one warmup followed by seven balanced measured
+runs with four OpenMP workers. All measured runs passed NPB verification. NPB
+time is elapsed benchmark time; total CPU is user plus system time. Class S was
+used only for build and correctness smoke tests, so it has no performance row.
 
-| Workload | Variant | NPB time | Total CPU | Peak RSS |
-| --- | --- | ---: | ---: | ---: |
-| BT-W | Stock | 5.540 s | 22.440 s | 41,080 KiB |
-| BT-W | Parallel note | 19.640 s (+254.5%) | 79.240 s (+253.1%) | 54,520 KiB (+32.7%) |
-| BT-W | Shadow-resident | 3.880 s (-30.0%) | 15.750 s (-29.8%) | 41,124 KiB (+0.1%) |
-| IS-W | Stock | 0.220 s | 1.160 s | 58,360 KiB |
-| IS-W | Parallel note | 0.360 s (+63.6%) | 1.840 s (+58.6%) | 71,160 KiB (+21.9%) |
-| IS-W | Shadow-resident | 0.210 s (-4.5%) | 1.130 s (-2.6%) | 58,276 KiB (-0.1%) |
-| CG-W | Stock | 1.540 s | 6.770 s | 56,440 KiB |
-| CG-W | Parallel note | 2.320 s (+50.6%) | 10.420 s (+53.9%) | 69,496 KiB (+23.1%) |
-| CG-W | Shadow-resident | 1.560 s (+1.3%) | 6.840 s (+1.0%) | 56,356 KiB (-0.1%) |
+| Workload | Variant | Measured runs | Median NPB time | Total CPU | Peak RSS |
+| --- | --- | ---: | ---: | ---: | ---: |
+| BT-W | Stock | 7 | 5.540 s | 22.440 s | 41,080 KiB |
+| BT-W | Parallel note | 7 | 19.640 s (+254.5%) | 79.240 s (+253.1%) | 54,520 KiB (+32.7%) |
+| BT-W | Shadow-resident | 7 | 3.880 s (-30.0%) | 15.750 s (-29.8%) | 41,124 KiB (+0.1%) |
+| BT-A | Stock | 7 | 117.010 s | 471.110 s | 166,776 KiB |
+| BT-A | Parallel note | 0 (timeout) | — | — | — |
+| BT-A | Shadow-resident | 7 | 79.140 s (-32.4%) | 319.620 s (-32.2%) | 166,820 KiB (+0.03%) |
+| IS-W | Stock | 7 | 0.220 s | 1.160 s | 58,360 KiB |
+| IS-W | Parallel note | 7 | 0.360 s (+63.6%) | 1.840 s (+58.6%) | 71,160 KiB (+21.9%) |
+| IS-W | Shadow-resident | 7 | 0.210 s (-4.5%) | 1.130 s (-2.6%) | 58,276 KiB (-0.1%) |
+| IS-B | Stock | 7 | 7.240 s | 37.320 s | 844,024 KiB |
+| IS-B | Parallel note | 7 | 11.620 s (+60.5%) | 59.800 s (+60.2%) | 856,824 KiB (+1.5%) |
+| IS-B | Shadow-resident | 7 | 7.250 s (+0.1%) | 37.390 s (+0.2%) | 844,068 KiB (+0.0%) |
+| CG-W | Stock | 7 | 1.540 s | 6.770 s | 56,440 KiB |
+| CG-W | Parallel note | 7 | 2.320 s (+50.6%) | 10.420 s (+53.9%) | 69,496 KiB (+23.1%) |
+| CG-W | Shadow-resident | 7 | 1.560 s (+1.3%) | 6.840 s (+1.0%) | 56,356 KiB (-0.1%) |
+| CG-A | Stock | 7 | 5.490 s | 24.450 s | 111,992 KiB |
+| CG-A | Parallel note | 7 | 8.030 s (+46.3%) | 37.670 s (+54.1%) | 125,176 KiB (+11.8%) |
+| CG-A | Shadow-resident | 7 | 5.440 s (-0.9%) | 24.320 s (-0.5%) | 111,908 KiB (-0.1%) |
 
-Small IS-W and CG-W shadow-resident differences are below the VM's measured
-noise. BT-W's reduction is much larger, repeatable, and agrees with the
-profiler, but still needs native-Linux confirmation.
+BT-A parallel note has no measured repetitions because its preliminary run
+exceeded the 120-second per-process limit. The paired BT-A shadow-resident NPB
+time improved by 33.04%, with an approximate 95% confidence interval from
+28.05% to 37.69%.
 
-## NPB OpenMP: larger balanced runs
-
-These also used one warmup and seven balanced repetitions.
-
-| Workload | Variant | NPB time | Total CPU | Peak RSS |
-| --- | --- | ---: | ---: | ---: |
-| IS-B | Stock | 7.240 s | 37.320 s | 844,024 KiB |
-| IS-B | Parallel note | 11.620 s (+60.5%) | 59.800 s (+60.2%) | 856,824 KiB (+1.5%) |
-| IS-B | Shadow-resident | 7.250 s (+0.1%) | 37.390 s (+0.2%) | 844,068 KiB (+0.0%) |
-| CG-A | Stock | 5.490 s | 24.450 s | 111,992 KiB |
-| CG-A | Parallel note | 8.030 s (+46.3%) | 37.670 s (+54.1%) | 125,176 KiB (+11.8%) |
-| CG-A | Shadow-resident | 5.440 s (-0.9%) | 24.320 s (-0.5%) | 111,908 KiB (-0.1%) |
-
-The confidence intervals include zero for both shadow-resident comparisons.
-The parallel-note regressions are substantially larger than the measured noise.
-
-## NPB OpenMP: BT-A
-
-Stock and shadow-resident used one warmup and seven balanced repetitions. All
-measured executions passed NPB verification. Parallel note is omitted from the
-balanced comparison because a single run exceeded the 120-second limit.
-
-| Variant | Median NPB time | Total CPU | Peak RSS |
-| --- | ---: | ---: | ---: |
-| Stock | 117.010 s | 471.110 s | 166,776 KiB |
-| Shadow-resident | 79.140 s | 319.620 s | 166,820 KiB (+0.03%) |
-
-The paired NPB-time reduction was 33.04%, with an approximate 95% confidence
-interval from 28.05% to 37.69%. BT-A therefore confirms the BT-W result: this
-workload benefits materially from exact-shadow filtering while resident memory
-remains unchanged within measurement variation.
+The BT-W and BT-A improvements are materially larger than VM noise and agree
+with the profiler. The smaller shadow-resident differences for IS and CG are
+statistically indistinguishable from stock. Parallel note is consistently
+slower and uses more memory in every completed NPB comparison.

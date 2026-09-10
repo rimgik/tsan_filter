@@ -73,13 +73,23 @@ opportunity, and it stays below 0.4% here.
 
 ## Why BT favours shadow-resident filtering
 
-The slot-0 rate comes directly from raw counters:
+The slot-0 rate comes from one profiler-enabled BT-W execution. The runtime
+increments `shadow_exact_eligible` whenever an access is eligible for the
+exact-shadow simulation. It additionally increments
+`shadow_exact_slot0_hits` when the access word already matches shadow slot 0.
+The raw JSON fields were stored locally at
+`$HOME/build/npb-cpp/profiles/bt-W.json`:
 
 ```text
 shadow_exact_slot0_hits / shadow_exact_eligible
 = 7,121,605,909 / 7,894,960,407
 = 90.20%
 ```
+
+Therefore, 7,121,605,909 means **7.12 billion slot-0 matches**, not 7 million.
+The denominator means 7.89 billion eligible cell touches. These are dynamic
+access counts from the diagnostic run; they are unrelated to the seven timing
+repetitions in the performance table.
 
 | Workload | Slot-0 hit | Any-slot hit | Miss |
 | --- | ---: | ---: | ---: |
