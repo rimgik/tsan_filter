@@ -6,6 +6,53 @@ The profiler uses ordinary TSan instrumentation and always continues through
 normal race tracking after recording diagnostics. Its CPU time and memory are
 profiler overhead, not candidate performance results.
 
+## Application workloads
+
+Redis 8.8 and SQLite were rerun on the Linux/AArch64 VM with the current
+profiler. Redis used 100,000 SET, GET, and INCR requests, 20 clients, and two
+I/O threads. SQLite speedtest1 used `--size 10`.
+
+| Workload | Private cells | Private accesses | Private beyond CSA | Exact note | Note beyond CSA | Any shadow-slot hit | Avoidable pages | Mixed pages | Fallback pages |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Redis | 35.78% | 53.75% | 13.68% | 2.55% | 0.65% | 66.67% | 34.34% | 56.42% | 9.24% |
+| SQLite | 100.00% | 100.00% | 36.79% | 6.01% | 1.44% | 71.59% | 0.25% | 78.84% | 20.92% |
+
+| Workload | Sparse pages | Dense pages | Peak RSS | Shadow RSS | Profiler RSS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Redis | 39.25% | 39.97% | 44,608 KiB | 6,796 KiB | 2,868 KiB |
+| SQLite | 0.95% | 86.29% | 122,248 KiB | 45,624 KiB | 20,088 KiB |
+
+Redis has real ownership transitions: 6,103,761 of 9,503,767 observed cell
+lifetimes became shared. Its one-word opportunity beyond stock CSA is only
+0.65%, while one third of reached pages remain potentially avoidable.
+
+SQLite has no ownership transitions, but private ownership alone is not enough.
+It recorded 23,265,081 ineligible note accesses, 338,211 merge failures, and
+523,840,974 accesses after permanent fallback. Only 27 of 10,976 reached pages
+were potentially avoidable. Exact-shadow candidates hit slot 0 23.33% of the
+time, later slots 48.26%, and missed 28.41%.
+
+## Controlled and microbenchmark workloads
+
+These Linux/AArch64 diagnostic runs predate the NPB evaluation. “Exact note”
+is the percentage of accesses absorbed by the simulated one-word note. “Exact
+shadow hit” uses only runtime-visible eligible accesses as its denominator.
+
+| Workload | Private cells | Exact note | Exact shadow hit | Avoidable pages | Mixed pages | Fallback pages | Sparse pages | Dense pages |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Controlled 60-page test | 99.78% | 98.91% | 5.89% | 50.00% | 33.33% | 16.67% | 58.33% | 25.00% |
+| Private loop, 30M writes | 100.00% | 100.00% | 100.00% | 33.33% | 33.33% | 33.33% | 66.67% | 0.00% |
+| 256 MiB contiguous private allocation | 100.00% | 100.00% | 0.01% | 100.00% | 0.00% | 0.00% | 0.00% | 100.00% |
+
+The private loop produced 30,000,002 slot-0 hits and one miss among 30,000,003
+eligible accesses. It is the ideal shadow-resident case.
+
+The large allocation produced 234,881,024 exact merges and 4,194,304 coverage
+hits. All but one of 131,074 observed pages were potentially avoidable. This
+explains the earlier parallel-note memory win: a contiguous private workload
+can avoid almost all ordinary-shadow residency even though note operations
+still add CPU cost.
+
 ## Optimization opportunities
 
 Percentages are dynamic accesses except private cells and the three page

@@ -13,9 +13,6 @@ means the metric was not retained and must not be inferred as unchanged.
 | Private loop, 300M writes | 0.5427 s | 0.3944 s | 27% faster | — | — | — |
 | Redis | 91,351 req/s | 63,123 req/s | 31% lower throughput | 41,688 KiB | 59,480 KiB | +42.7% |
 | SQLite speedtest1 | 5.76 s | 9.92 s | 72% slower | 112,908 KiB | 124,520 KiB | +10.3% |
-| NPB BT-W | 22.44 s | 79.24 s | 253.1% slower | 41,080 KiB | 54,520 KiB | +32.7% |
-| NPB IS-B | 37.32 s | 59.80 s | 60.2% slower | 844,024 KiB | 856,824 KiB | +1.5% |
-| NPB CG-A | 24.45 s | 37.67 s | 54.1% slower | 111,992 KiB | 125,176 KiB | +11.8% |
 
 The private loop is a deliberately favourable case. Every application-sized
 workload paid more for the second mapping and merge logic than it recovered by
@@ -28,10 +25,60 @@ avoiding runtime calls.
 | Private loop, 300M writes | 0.5488 s | 0.1718 s | 68.7% faster | — | — | — |
 | Redis | 92,377 req/s | 91,843 req/s | 0.65% lower throughput | ~41,804 KiB | ~41,916 KiB | +0.3% |
 | SQLite speedtest1 | 5.609 s | 5.599 s | 0.2% faster | 112,908 KiB | 112,704 KiB | -0.2% |
-| NPB BT-W | 22.44 s | 15.75 s | 29.8% faster | 41,080 KiB | 41,124 KiB | +0.1% |
-| NPB IS-B | 37.32 s | 37.39 s | 0.2% slower | 844,024 KiB | 844,068 KiB | +0.0% |
-| NPB CG-A | 24.45 s | 24.32 s | 0.5% faster | 111,992 KiB | 111,908 KiB | -0.1% |
 
 Redis, SQLite, IS-B, and CG-A were statistically indistinguishable from stock
 in the retained runs. BT-W is the main application-sized positive result.
 The [profiler analysis](../profiler/results.md) explains why.
+
+## NPB OpenMP: Class W
+
+One warmup and seven balanced repetitions were used with four OpenMP workers.
+All runs passed NPB verification. NPB time is the benchmark's elapsed time;
+total CPU is user plus system time.
+
+| Workload | Variant | NPB time | Total CPU | Peak RSS |
+| --- | --- | ---: | ---: | ---: |
+| BT-W | Stock | 5.540 s | 22.440 s | 41,080 KiB |
+| BT-W | Parallel note | 19.640 s (+254.5%) | 79.240 s (+253.1%) | 54,520 KiB (+32.7%) |
+| BT-W | Shadow-resident | 3.880 s (-30.0%) | 15.750 s (-29.8%) | 41,124 KiB (+0.1%) |
+| IS-W | Stock | 0.220 s | 1.160 s | 58,360 KiB |
+| IS-W | Parallel note | 0.360 s (+63.6%) | 1.840 s (+58.6%) | 71,160 KiB (+21.9%) |
+| IS-W | Shadow-resident | 0.210 s (-4.5%) | 1.130 s (-2.6%) | 58,276 KiB (-0.1%) |
+| CG-W | Stock | 1.540 s | 6.770 s | 56,440 KiB |
+| CG-W | Parallel note | 2.320 s (+50.6%) | 10.420 s (+53.9%) | 69,496 KiB (+23.1%) |
+| CG-W | Shadow-resident | 1.560 s (+1.3%) | 6.840 s (+1.0%) | 56,356 KiB (-0.1%) |
+
+Small IS-W and CG-W shadow-resident differences are below the VM's measured
+noise. BT-W's reduction is much larger, repeatable, and agrees with the
+profiler, but still needs native-Linux confirmation.
+
+## NPB OpenMP: larger balanced runs
+
+These also used one warmup and seven balanced repetitions.
+
+| Workload | Variant | NPB time | Total CPU | Peak RSS |
+| --- | --- | ---: | ---: | ---: |
+| IS-B | Stock | 7.240 s | 37.320 s | 844,024 KiB |
+| IS-B | Parallel note | 11.620 s (+60.5%) | 59.800 s (+60.2%) | 856,824 KiB (+1.5%) |
+| IS-B | Shadow-resident | 7.250 s (+0.1%) | 37.390 s (+0.2%) | 844,068 KiB (+0.0%) |
+| CG-A | Stock | 5.490 s | 24.450 s | 111,992 KiB |
+| CG-A | Parallel note | 8.030 s (+46.3%) | 37.670 s (+54.1%) | 125,176 KiB (+11.8%) |
+| CG-A | Shadow-resident | 5.440 s (-0.9%) | 24.320 s (-0.5%) | 111,908 KiB (-0.1%) |
+
+The confidence intervals include zero for both shadow-resident comparisons.
+The parallel-note regressions are substantially larger than the measured noise.
+
+## NPB OpenMP: preliminary BT-A run
+
+BT-A was tested once while selecting problem sizes. It is not a balanced
+headline result and must not be compared with the tables above.
+
+| Variant | NPB time | Total CPU | Peak RSS | Result |
+| --- | ---: | ---: | ---: | --- |
+| Stock | 113.33 s | 457.64 s | 166,776 KiB | Verified |
+| Parallel note | — | — | — | Timed out at 120 s |
+| Shadow-resident | 76.72 s | 310.11 s | 166,948 KiB | Verified |
+
+BT-A is too close to the two-minute limit for the current balanced suite. Its
+apparent shadow-resident improvement is useful follow-up evidence, not a final
+measurement.
