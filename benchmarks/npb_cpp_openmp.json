@@ -1,0 +1,27 @@
+{
+  "name": "GMAP NPB-CPP OpenMP",
+  "repository": "https://github.com/GMAP/NPB-CPP.git",
+  "revision": "5bc1e2c4aca09f4ebae370b80f8f335a76e162ef",
+  "suite_directory": "NPB-OMP",
+  "license_file": "LICENSE.md",
+  "benchmarks": ["BT", "IS", "CG"],
+  "classes": ["S", "W", "A", "B"],
+  "variants": {
+    "stock": {
+      "compiler_flags": [],
+      "runtime_options": ""
+    },
+    "note": {
+      "compiler_flags": ["-mllvm", "-tsan-one-word-filter"],
+      "runtime_options": "one_word_filter=1"
+    },
+    "shadow-resident": {
+      "compiler_flags": ["-mllvm", "-tsan-shadow-resident-filter"],
+      "runtime_options": ""
+    },
+    "profiler": {
+      "compiler_flags": [],
+      "runtime_options": "ownership_profile=1"
+    }
+  }
+}

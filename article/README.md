@@ -8,4 +8,6 @@ The repository records links instead of redistributing paper copies.
 
 These systems provide context for ownership, access filtering, and the cost of
 dynamic race-detection instrumentation. Their guarantees and mechanisms differ
-from the one-word filter implemented here.
+from the filters implemented here.
+
+[Back to the documentation index](../docs/README.md)

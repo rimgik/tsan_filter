@@ -1,38 +1,23 @@
-# TSan One-Word Filter
+# TSan Fast-Filter Experiments
 
-This project investigates whether ThreadSanitizer (TSan) can avoid ordinary
-shadow-memory updates while a memory cell is representable by one exact shadow
-word. A parallel note region stores that word. When an access cannot be merged
-exactly, the note is handed to normal TSan shadow memory and the cell remains on
-the standard path.
+This project tests whether ThreadSanitizer (TSan) can avoid repeated runtime
+work without losing race-detection history.
 
-The current implementation is sound: it does not discard history at the
-transition to normal TSan tracking. Its practical result is mixed. A narrow
-private-write microbenchmark is substantially faster, but the tested
-real-world and proxy workloads are slower and use more resident memory.
+Three LLVM branches contain the current work:
 
-## Repository layout
+| Branch | Purpose | Current result |
+| --- | --- | --- |
+| [`feat/parallel-note`](https://github.com/rimgik/llvm-project/tree/feat/parallel-note) | Stores one exact TSan word in a parallel metadata region. | Sound, but slower and larger on tested applications. |
+| [`feat/shadow-resident-filter`](https://github.com/rimgik/llvm-project/tree/feat/shadow-resident-filter) | Checks the existing four TSan shadow slots before calling the runtime. | Strong synthetic and BT gains; neutral on several applications. |
+| [`feat/workload-profiler`](https://github.com/rimgik/llvm-project/tree/feat/workload-profiler) | Measures ownership, exact-hit opportunities, and shadow-page density. | Diagnostic only; normal TSan tracking remains enabled. |
 
-- `llvm-project/` — LLVM fork pinned to the implementation commit.
-- `TSan_v3_Source_Reference.md` — source-level guide to TSan v3.
-- `report/` — design, soundness, implementation, and evaluation notes.
-- `mvp/` — build instructions and compact benchmark sources.
-- `results/summary.md` — headline performance and memory measurements.
-- `docs/` — project brief and proposal.
-- `article/README.md` — related papers and links.
+The parallel note was 27% faster on a deliberately favourable private loop,
+but 31% lower-throughput on Redis and 72% slower on SQLite. The
+shadow-resident filter reduced BT Class W CPU time by about 30% with unchanged
+peak RSS. IS and CG were indistinguishable from stock in the Linux VM.
 
-## Implementation
+Start with the [documentation index](docs/README.md). It links the Linux build,
+usage, correctness, implementation, profiler, benchmark, and reference guides.
 
-The implementation is available on
-[`feat/one-word-note`](https://github.com/rimgik/llvm-project/tree/feat/one-word-note)
-and tagged
-[`one-word-note-v1`](https://github.com/rimgik/llvm-project/tree/one-word-note-v1).
-The pinned commit is
-[`7bbf797`](https://github.com/rimgik/llvm-project/commit/7bbf797546779f077778e90237a7f1a36a04bc4b).
-
-The feature is disabled by default. Enable compiler instrumentation with
-`-mllvm -tsan-one-word-filter` and enable the runtime with
-`TSAN_OPTIONS=one_word_filter=1`.
-
-Start with [the MVP guide](mvp/README.md) for the design and build commands,
-then read [the results summary](results/summary.md) for the current limits.
+The LLVM fork is included as a submodule. Downloaded benchmarks, build trees,
+raw traces, and private working notes are intentionally excluded.
