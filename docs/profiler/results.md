@@ -12,12 +12,12 @@ Redis 8.8 and SQLite were rerun on the Linux/AArch64 VM with the current
 profiler. Redis used 100,000 SET, GET, and INCR requests, 20 clients, and two
 I/O threads. SQLite speedtest1 used `--size 10`.
 
-| Workload | Private cells | Private accesses | Private beyond CSA | Exact note | Note beyond CSA | Any shadow-slot hit | Avoidable pages | Mixed pages | Fallback pages |
+| Workload | Private cells | Private-phase accesses | Private accesses beyond CSA | Exact-note absorbed accesses | Exact-note accesses beyond CSA | Exact-shadow hits among eligible accesses | Potentially avoidable shadow pages | Mixed-path shadow pages | Fallback-only shadow pages |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | Redis | 35.78% | 53.75% | 13.68% | 2.55% | 0.65% | 66.67% | 34.34% | 56.42% | 9.24% |
 | SQLite | 100.00% | 100.00% | 36.79% | 6.01% | 1.44% | 71.59% | 0.25% | 78.84% | 20.92% |
 
-| Workload | Sparse pages | Dense pages | Peak RSS | Shadow RSS | Profiler RSS |
+| Workload | Sparse shadow pages | Dense shadow pages | Peak total RSS | Peak shadow RSS | Peak profiler RSS |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Redis | 39.25% | 39.97% | 44,608 KiB | 6,796 KiB | 2,868 KiB |
 | SQLite | 0.95% | 86.29% | 122,248 KiB | 45,624 KiB | 20,088 KiB |
@@ -38,7 +38,7 @@ These Linux/AArch64 diagnostic runs predate the NPB evaluation. “Exact note”
 is the percentage of accesses absorbed by the simulated one-word note. “Exact
 shadow hit” uses only runtime-visible eligible accesses as its denominator.
 
-| Workload | Private cells | Exact note | Exact shadow hit | Avoidable pages | Mixed pages | Fallback pages | Sparse pages | Dense pages |
+| Workload | Private cells | Exact-note absorbed accesses | Exact-shadow hits among eligible accesses | Potentially avoidable shadow pages | Mixed-path shadow pages | Fallback-only shadow pages | Sparse shadow pages | Dense shadow pages |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | Controlled 60-page test | 99.78% | 98.91% | 5.89% | 50.00% | 33.33% | 16.67% | 58.33% | 25.00% |
 | Private loop, 30M writes | 100.00% | 100.00% | 100.00% | 33.33% | 33.33% | 33.33% | 66.67% | 0.00% |
@@ -58,7 +58,7 @@ still add CPU cost.
 Percentages are dynamic accesses except private cells and the three page
 columns. CSA means stock TSan's `ContainsSameAccess` fast path.
 
-| Workload | Private cells | Private accesses | Private beyond CSA | Exact note | Note beyond CSA | Any shadow-slot hit | Avoidable pages | Mixed pages | Fallback pages |
+| Workload | Private cells | Private-phase accesses | Private accesses beyond CSA | Exact-note absorbed accesses | Exact-note accesses beyond CSA | Exact-shadow hits among eligible accesses | Potentially avoidable shadow pages | Mixed-path shadow pages | Fallback-only shadow pages |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | BT-W | 19.73% | 83.04% | 0.48% | 5.22% | 0.02% | 96.06% | 1.24% | 36.95% | 61.81% |
 | IS-W | 3.92% | 36.46% | 4.75% | 7.85% | 0.37% | 64.35% | 0.02% | 25.82% | 74.15% |
@@ -86,10 +86,9 @@ shadow_exact_slot0_hits / shadow_exact_eligible
 = 90.20%
 ```
 
-Therefore, 7,121,605,909 means **7.12 billion slot-0 matches**, not 7 million.
-The denominator means 7.89 billion eligible cell touches. These are dynamic
-access counts from the diagnostic run; they are unrelated to the seven timing
-repetitions in the performance table.
+The profiler observed 7.12 billion slot-0 matches among 7.89 billion eligible
+cell touches. These are dynamic access counts from the diagnostic run; they are
+unrelated to the seven timing repetitions in the performance table.
 
 | Workload | Slot-0 hit | Any-slot hit | Miss |
 | --- | ---: | ---: | ---: |
@@ -107,7 +106,7 @@ accesses, but exact-note opportunity beyond stock CSA is only 0.02%.
 
 ## Shadow-page density and memory
 
-| Workload | Sparse pages | Dense pages | Peak RSS | Shadow RSS | Profiler RSS |
+| Workload | Sparse shadow pages | Dense shadow pages | Peak total RSS | Peak shadow RSS | Peak profiler RSS |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | BT-W | 0.31% | 92.49% | 44,348 KiB | 6,504 KiB | 3,212 KiB |
 | IS-W | 0.24% | 99.67% | 67,604 KiB | 18,236 KiB | 9,192 KiB |
