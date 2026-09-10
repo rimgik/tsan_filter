@@ -68,17 +68,18 @@ These also used one warmup and seven balanced repetitions.
 The confidence intervals include zero for both shadow-resident comparisons.
 The parallel-note regressions are substantially larger than the measured noise.
 
-## NPB OpenMP: preliminary BT-A run
+## NPB OpenMP: BT-A
 
-BT-A was tested once while selecting problem sizes. It is not a balanced
-headline result and must not be compared with the tables above.
+Stock and shadow-resident used one warmup and seven balanced repetitions. All
+measured executions passed NPB verification. Parallel note is omitted from the
+balanced comparison because a single run exceeded the 120-second limit.
 
-| Variant | NPB time | Total CPU | Peak RSS | Result |
-| --- | ---: | ---: | ---: | --- |
-| Stock | 113.33 s | 457.64 s | 166,776 KiB | Verified |
-| Parallel note | — | — | — | Timed out at 120 s |
-| Shadow-resident | 76.72 s | 310.11 s | 166,948 KiB | Verified |
+| Variant | Median NPB time | Total CPU | Peak RSS |
+| --- | ---: | ---: | ---: |
+| Stock | 117.010 s | 471.110 s | 166,776 KiB |
+| Shadow-resident | 79.140 s | 319.620 s | 166,820 KiB (+0.03%) |
 
-BT-A is too close to the two-minute limit for the current balanced suite. Its
-apparent shadow-resident improvement is useful follow-up evidence, not a final
-measurement.
+The paired NPB-time reduction was 33.04%, with an approximate 95% confidence
+interval from 28.05% to 37.69%. BT-A therefore confirms the BT-W result: this
+workload benefits materially from exact-shadow filtering while resident memory
+remains unchanged within measurement variation.

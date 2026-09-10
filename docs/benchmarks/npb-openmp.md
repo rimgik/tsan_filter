@@ -26,8 +26,9 @@ to the corresponding stock, note, shadow-resident, and profiler builds.
 ```
 
 Use Class W for routine BT testing, IS Class B and CG Class A for larger runs.
-BT Class A takes about 115 seconds for stock in the development VM and the note
-variant exceeds 120 seconds, so it is not the default balanced workload.
+BT Class A takes about two minutes per stock execution in the development VM;
+a full stock-versus-shadow comparison takes roughly half an hour. The parallel
+note exceeds 120 seconds, so BT-A is not the default three-variant workload.
 
 Every run must print `Verification = SUCCESSFUL`. Set `OMP_TOOL_LIBRARIES` as
 shown in the [Linux build guide](../build-linux.md).

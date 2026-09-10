@@ -54,6 +54,7 @@ Run both full suites and the focused slot/handoff tests described in
 | --- | ---: | ---: | ---: | ---: |
 | Private cell, 300M writes | 0.5488 s | 0.1718 s | about 69% faster | not recorded |
 | NPB BT-W | 22.44 s | 15.75 s | 29.8% faster | +0.1% |
+| NPB BT-A | 471.11 s | 319.62 s | 32.2% faster | +0.03% |
 | NPB IS-B | 37.32 s | 37.39 s | +0.2% | +0.0% |
 | NPB CG-A | 24.45 s | 24.32 s | -0.5% | -0.1% |
 
