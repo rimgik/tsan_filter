@@ -67,3 +67,30 @@ The BT-W and BT-A improvements are materially larger than VM noise and agree
 with the profiler. The smaller shadow-resident differences for IS and CG are
 statistically indistinguishable from stock. Parallel note is consistently
 slower and uses more memory in every completed NPB comparison.
+
+## FFmpeg 4.3.9
+
+These runs used the pinned `WatchingEyeTexture.mkv`, four worker threads, one
+warmup, and seven balanced measured repetitions. Times and RSS are medians;
+the value in parentheses is relative to stock.
+
+| Codec | Variant | Runs | Wall time | Total CPU | Peak RSS |
+| --- | --- | ---: | ---: | ---: | ---: |
+| H.264 | Stock | 7 | 63.15 s | 238.45 s | 448,948 KiB |
+| H.264 | Parallel note | 7 | 79.07 s (+25.2%) | 306.64 s (+28.6%) | 663,744 KiB (+47.8%) |
+| H.264 | Shadow resident | 7 | 63.00 s (-0.2%) | 239.09 s (+0.3%) | 453,424 KiB (+1.0%) |
+| H.265 | Stock | 7 | 320.56 s | 1,249.93 s | 1,045,908 KiB |
+| H.265 | Parallel note | 7 | 375.97 s (+17.3%) | 1,468.78 s (+17.5%) | 1,306,524 KiB (+24.9%) |
+| H.265 | Shadow resident | 7 | 323.53 s (+0.9%) | 1,250.06 s (+0.0%) | 1,048,164 KiB (+0.2%) |
+| MJPEG | Stock | 7 | 113.07 s | 448.47 s | 312,136 KiB |
+| MJPEG | Parallel note | 7 | 188.67 s (+66.9%) | 741.51 s (+65.3%) | 433,112 KiB (+38.8%) |
+| MJPEG | Shadow resident | 7 | 111.66 s (-1.2%) | 442.65 s (-1.3%) | 316,488 KiB (+1.4%) |
+| Copy | Stock | 7 | 1.276 s | 1.27 s | 86,708 KiB |
+| Copy | Parallel note | 7 | 2.236 s (+75.3%) | 2.23 s (+75.6%) | 99,468 KiB (+14.7%) |
+| Copy | Shadow resident | 7 | 1.212 s (-5.1%) | 1.20 s (-5.5%) | 90,992 KiB (+4.9%) |
+
+Shadow resident is effectively at stock performance for the three encoding
+workloads. Copy is too short for its small absolute difference to support a
+general speed claim. Parallel note is slower and uses more resident memory in
+all four modes. H.265 had visible VM drift (stock wall-time standard deviation
+27.19 s), so these remain development results pending native Linux repetition.

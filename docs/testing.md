@@ -20,6 +20,9 @@ For every feature:
 
 - Run the feature's LLVM instrumentation test.
 - Compile and run an intentional data race; TSan must report it.
+
+The application-suite control uses
+`mvp/benchmarks/bench_intentional_race.c` under each separately built variant.
 - Confirm that the feature is disabled unless its documented option is used.
 - Compare against a separately built stock compiler.
 

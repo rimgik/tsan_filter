@@ -1,0 +1,53 @@
+{
+  "suite": {
+    "repository": "https://github.com/focs-lab/tsan-experiments.git",
+    "commit": "ffb2d5a8cac32c27d5eb0dcb667428435aca0320"
+  },
+  "protocol": {
+    "warmups": 1,
+    "measured_runs": 7,
+    "order": "balanced_interleaved",
+    "platform": "Linux/AArch64 VM (development only)"
+  },
+  "variants": {
+    "stock": {
+      "compiler_flag": "",
+      "runtime_option": ""
+    },
+    "parallel-note": {
+      "compiler_flag": "-mllvm -tsan-one-word-filter",
+      "runtime_option": "one_word_filter=1"
+    },
+    "shadow-resident": {
+      "compiler_flag": "-mllvm -tsan-shadow-resident-filter",
+      "runtime_option": ""
+    }
+  },
+  "workloads": {
+    "memcached": {
+      "version": "1.6.29",
+      "client": "memtier_benchmark 2.1.1",
+      "duration_seconds": 30
+    },
+    "redis": {
+      "version": "7.0.15",
+      "client": "redis-benchmark",
+      "operation_set": "suite default"
+    },
+    "sqlite": {
+      "version": "3.50.2",
+      "program": "threadtest3",
+      "arguments": []
+    },
+    "ffmpeg": {
+      "version": "4.3.9",
+      "codecs": ["h264_libx264", "h265_libx265", "mjpeg", "copy_passthrough"]
+    },
+    "mysql": {
+      "version": "8.0.39",
+      "client": "sysbench oltp_read_write",
+      "threads": 3,
+      "duration_seconds": 180
+    }
+  }
+}

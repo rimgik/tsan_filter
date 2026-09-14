@@ -24,6 +24,7 @@
   - [Metric definitions](profiler/metrics.md)
   - [Profiler results and analysis](profiler/results.md)
 - [NPB OpenMP setup](benchmarks/npb-openmp.md)
+- [`tsan-experiments` application suite](benchmarks/tsan-experiments.md)
 
 ### Background
 

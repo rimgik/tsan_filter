@@ -13,6 +13,7 @@
 | [Redis](#redis) | Concurrent server workload. |
 | [SQLite speedtest1](#sqlite-speedtest1) | Single-process application workload. |
 | [NPB OpenMP](npb-openmp.md) | Parallel BT, IS, and CG kernels. |
+| [`tsan-experiments` applications](tsan-experiments.md) | Memcached, Redis, SQLite, FFmpeg, and MySQL. |
 
 ## Common setup
 
