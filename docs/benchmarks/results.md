@@ -30,6 +30,26 @@ Redis, SQLite, IS-B, and CG-A were statistically indistinguishable from stock
 in the retained runs. BT-W is the main application-sized positive result.
 The [profiler analysis](../profiler/results.md) explains why.
 
+## Native Linux Memcached 1.6.29
+
+This comparison used the supplied 30-second `memtier_benchmark` workload from
+`focs-lab/tsan-experiments` at commit
+`ffb2d5a8cac32c27d5eb0dcb667428435aca0320`. Each variant had one warmup and
+seven interleaved measured runs. CPU is user plus system time; RSS is peak
+resident memory.
+
+| Variant | Runs | Throughput | Wall time | Total CPU | Peak RSS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Stock | 7 | 67,837.63 ops/s | 33.27 s | 110.09 s | 56,768 KiB |
+| Parallel note | 7 | 60,542.90 ops/s (-10.75%) | 33.26 s (-0.03%) | 106.36 s (-3.39%) | 56,828 KiB (+0.11%) |
+| Shadow resident | 7 | 67,897.24 ops/s (+0.09%) | 33.27 s (+0.00%) | 109.95 s (-0.13%) | 56,828 KiB (+0.11%) |
+
+Shadow resident is indistinguishable from stock. Parallel note reduces server
+CPU slightly but also reduces delivered throughput by 10.75%, so it is not a
+performance improvement. Profiler and hardware-counter runs are separate from
+these timing measurements. Raw logs and per-run measurements are retained on
+the native benchmark host and are not committed.
+
 ## NPB OpenMP
 
 Each completed comparison used one warmup followed by seven balanced measured
