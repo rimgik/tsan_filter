@@ -2,9 +2,10 @@
 
 [Documentation](../README.md) · [Run the benchmarks](README.md) · [Profiler analysis](../profiler/results.md)
 
-These are Linux/AArch64 VM development results. CPU is user plus system time;
-RSS is peak resident memory. Native Linux confirmation remains pending. A dash
-means the metric was not retained and must not be inferred as unchanged.
+Unless labelled otherwise, these are Linux/AArch64 VM development results. CPU
+is user plus system time; RSS is peak resident memory. Native Linux confirmation
+for Memcached and MySQL is reported below. A dash means the metric was not
+retained and must not be inferred as unchanged.
 
 ## Parallel-note filter
 
@@ -49,6 +50,36 @@ CPU slightly but also reduces delivered throughput by 10.75%, so it is not a
 performance improvement. Profiler and hardware-counter runs are separate from
 these timing measurements. Raw logs and per-run measurements are retained on
 the native benchmark host and are not committed.
+
+## Native Linux MySQL 8.0.39
+
+This native x86-64 run used MySQL 8.0.39 and the supplied sysbench
+`oltp_read_write` workload from `focs-lab/tsan-experiments` commit
+`ffb2d5a8cac32c27d5eb0dcb667428435aca0320`: three workers and 180 seconds per
+run. One warmup preceded seven balanced, interleaved measured repetitions.
+Values are medians; dispersion is median absolute deviation (MAD), and
+percentages are relative to stock.
+
+| Variant | Runs | TPS | QPS | Wall time | Total CPU | Peak server RSS |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Stock | 7 | 13.65 (MAD 0.22) | 273.12 (MAD 4.33) | 180.20 s (MAD 0.01) | 336.74 s (MAD 0.43) | 3,046,412 KiB (MAD 248) |
+| Parallel note | 7 | 10.43 (-23.59%; MAD 0.04) | 208.51 (-23.66%; MAD 0.96) | 180.28 s (+0.04%; MAD 0.04) | 341.10 s (+1.29%; MAD 0.36) | 3,060,656 KiB (+0.47%; MAD 1,060) |
+| Shadow resident | 7 | 13.30 (-2.56%; MAD 0.10) | 265.91 (-2.64%; MAD 2.02) | 180.17 s (-0.02%; MAD 0.03) | 337.73 s (+0.29%; MAD 0.70) | 3,050,652 KiB (+0.14%; MAD 560) |
+
+Total CPU, user time, and system time include both the sysbench client and
+MySQL server. The retained operating-system counters were:
+
+| Variant | User time | System time | Minor faults | Major faults | Voluntary switches | Involuntary switches | Exit status |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Stock | 325.06 s (MAD 0.73) | 11.94 s (MAD 0.09) | 570,725 (MAD 2,901) | 0 (MAD 0) | 653,788 (MAD 2,792) | 354,028 (MAD 2,145) | 0 |
+| Parallel note | 330.89 s (+1.79%; MAD 0.40) | 10.43 s (-12.65%; MAD 0.03) | 478,855 (-16.10%; MAD 3,592) | 0 (MAD 0; max 1) | 621,108 (-5.00%; MAD 2,403) | 347,135 (-1.95%; MAD 2,454) | 0 |
+| Shadow resident | 325.83 s (+0.24%; MAD 0.53) | 11.90 s (-0.34%; MAD 0.10) | 562,354 (-1.47%; MAD 1,827) | 0 (MAD 0; max 1) | 669,114 (+2.34%; MAD 2,655) | 360,022 (+1.69%; MAD 3,613) | 0 |
+
+The parallel-note variant reduced throughput by about 24% despite similar wall
+time, while shadow resident remained within 3% of stock throughput with nearly
+unchanged CPU and RSS. All measured client and server processes exited
+successfully. Ownership-profiler and stock `perf stat` executions completed
+separately after headline timing and are not included in these rows.
 
 ## NPB OpenMP
 
